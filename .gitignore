@@ -1,0 +1,27 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Node
+node_modules/
+.env
+
+# Build
+dist/
+build/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+
+# React
+frontend/node_modules/
+frontend/build/
+
+# Backend
+backend/node_modules/
+backend/.env
