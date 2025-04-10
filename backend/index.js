@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -6,17 +8,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexão com o MongoDB
-mongoose.connect("mongodb://127.0.0.1:27017/free-criatividade");
+const uri = process.env.MONGODB_URI;
+mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("Conectado ao MongoDB"))
+  .catch((err) => console.error("Erro na conexão com o MongoDB:", err));
 
-// Modelo de ideia
 const Ideia = mongoose.model("Ideia", {
   mensagem: String,
   resposta: String,
   data: { type: Date, default: Date.now },
 });
 
-// Função para gerar uma resposta poética (simulada)
 function gerarRespostaPoetica(mensagem) {
   const respostasPoeticas = [
     "A tua palavra dança com as folhas do tempo.",
@@ -30,7 +32,6 @@ function gerarRespostaPoetica(mensagem) {
   return respostasPoeticas[indice];
 }
 
-// Rota para salvar nova ideia
 app.post("/ideias", async (req, res) => {
   const novaResposta = gerarRespostaPoetica(req.body.mensagem);
   const novaIdeia = new Ideia({
@@ -41,13 +42,11 @@ app.post("/ideias", async (req, res) => {
   res.json(novaIdeia);
 });
 
-// Rota para listar ideias
 app.get("/ideias", async (req, res) => {
   const ideias = await Ideia.find().sort({ data: -1 });
   res.json(ideias);
 });
 
-// 🆕 Rota para gerar nova reflexão
 app.put("/ideias/:id/refletir", async (req, res) => {
   const ideia = await Ideia.findById(req.params.id);
   if (!ideia) {
@@ -59,6 +58,7 @@ app.put("/ideias/:id/refletir", async (req, res) => {
   res.json(ideia);
 });
 
-app.listen(3001, () => {
-  console.log("Servidor rodando na porta 3001 🚀");
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT} 🚀`);
 });
