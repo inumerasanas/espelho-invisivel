@@ -78,7 +78,7 @@ npm start
 
 ---
 
-Feito com criatividade e alma por Polly 💜
+Feito com criatividade e alma por InumerasAnas 💜
 
 
 ## 🌸 Inspiração
