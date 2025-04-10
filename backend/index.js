@@ -9,10 +9,12 @@ app.use(cors());
 app.use(express.json());
 
 const uri = process.env.MONGODB_URI;
+console.log("Tentando conectar com URI:", uri); // Log para depurar
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Conectado ao MongoDB"))
   .catch((err) => console.error("Erro na conexão com o MongoDB:", err));
 
+// (o resto do código continua igual)
 const Ideia = mongoose.model("Ideia", {
   mensagem: String,
   resposta: String,
