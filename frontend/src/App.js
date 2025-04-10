@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import HistoricoIdeias from "./components/HistoricoIdeias";
 import LoadingEspelho from "./components/LoadingEspelho";
@@ -9,28 +9,39 @@ function App() {
   const [carregando, setCarregando] = useState(false);
   const [refletindo, setRefletindo] = useState(false);
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   const enviarIdeia = async () => {
     if (!mensagem.trim()) return;
 
     setCarregando(true);
 
-    // Simula um tempinho mágico de reflexão
+    // Simula o espelho invisivel refletindo por 2 segundos antes de enviar a ideia
     setTimeout(async () => {
-      await axios.post("http://localhost:3001/ideias", { mensagem });
-      setMensagem("");
-      await carregarIdeias();
-      setCarregando(false);
+      try {
+        await axios.post(`${API_URL}/ideias`, { mensagem }); // Corrigido para /ideias
+        setMensagem("");
+        await carregarIdeias();
+      } catch (error) {
+        console.error("Erro ao enviar ideia:", error);
+      } finally {
+        setCarregando(false);
+      }
     }, 2000);
   };
 
-  const carregarIdeias = async () => {
-    const resposta = await axios.get("http://localhost:3001/ideias");
-    setIdeias(resposta.data);
-  };
-
+  const carregarIdeias = useCallback(async () => {
+    try {
+      const resposta = await axios.get(`${API_URL}/ideias`);
+      setIdeias(resposta.data);
+    } catch (error) {
+      console.error("Erro ao carregar ideias:", error);
+    }
+  }, [API_URL]);
+  
   useEffect(() => {
     carregarIdeias();
-  }, []);
+  }, [carregarIdeias]);
 
   const formatarData = (dataISO) => {
     const data = new Date(dataISO);
@@ -76,55 +87,49 @@ function App() {
         </div>
       )}
 
-      {!carregando && (
+      {!carregando && ultimaIdeia && (
         <div className="max-w-xl mx-auto">
-          {ultimaIdeia && (
-            <div className="mb-4 p-4 bg-white border rounded shadow-sm">
-              <p className="text-lg font-medium text-gray-800">
-                {ultimaIdeia.mensagem}
+          <div className="mb-4 p-4 bg-white border rounded shadow-sm">
+            <p className="text-lg font-medium text-gray-800">
+              {ultimaIdeia.mensagem}
+            </p>
+
+            {ultimaIdeia.resposta && (
+              <p className="mt-2 italic text-purple-600">
+                Espelho diz: “{ultimaIdeia.resposta}”
               </p>
+            )}
 
-              {ultimaIdeia.resposta && (
-                <p className="mt-2 italic text-purple-600">
-                  Espelho diz: “{ultimaIdeia.resposta}”
-                </p>
-              )}
+            <p className="text-sm text-gray-400 mt-1">
+              {formatarData(ultimaIdeia.data)}
+            </p>
 
-              <p className="text-sm text-gray-400 mt-1">
-                {formatarData(ultimaIdeia.data)}
-              </p>
+            <button
+              onClick={async () => {
+                setRefletindo(true);
 
-              <button
-  onClick={async () => {
-    setRefletindo(true);
-
-    setTimeout(async () => {
-      const resposta = await axios.put(
-        `http://localhost:3001/ideias/${ultimaIdeia._id}/refletir`
-      );
-
-      setIdeias((ideiasAntigas) =>
-        ideiasAntigas.map((i) =>
-          i._id === resposta.data._id ? resposta.data : i
-        )
-      );
-
-      setRefletindo(false);
-    }, 2000); // Espera mágica de 2 segundos ✨
-  }}
-  className="text-sm text-purple-500 mt-2 hover:underline flex items-center gap-2"
->
-  {refletindo ? (
-    <LoadingEspelho />
-  ) : (
-    <>
-      Nova reflexão
-    </>
-  )}
-</button>
-
-            </div>
-          )}
+                setTimeout(async () => {
+                  try {
+                    const resposta = await axios.put(
+                      `${API_URL}/ideias/${ultimaIdeia._id}/refletir`
+                    );
+                    setIdeias((ideiasAntigas) =>
+                      ideiasAntigas.map((i) =>
+                        i._id === resposta.data._id ? resposta.data : i
+                      )
+                    );
+                  } catch (error) {
+                    console.error("Erro ao refletir:", error);
+                  } finally {
+                    setRefletindo(false);
+                  }
+                }, 2000);
+              }}
+              className="text-sm text-purple-500 mt-2 hover:underline flex items-center gap-2"
+            >
+              {refletindo ? <LoadingEspelho /> : <>Nova reflexão</>}
+            </button>
+          </div>
         </div>
       )}
 

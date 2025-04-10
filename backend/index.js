@@ -9,12 +9,11 @@ app.use(cors());
 app.use(express.json());
 
 const uri = process.env.MONGODB_URI;
-console.log("Tentando conectar com URI:", uri); // Log para depurar
+console.log("Tentando conectar com URI:", uri);
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Conectado ao MongoDB"))
   .catch((err) => console.error("Erro na conexão com o MongoDB:", err));
 
-// (o resto do código continua igual)
 const Ideia = mongoose.model("Ideia", {
   mensagem: String,
   resposta: String,
@@ -34,6 +33,7 @@ function gerarRespostaPoetica(mensagem) {
   return respostasPoeticas[indice];
 }
 
+// Endpoint real: cria e salva uma ideia
 app.post("/ideias", async (req, res) => {
   const novaResposta = gerarRespostaPoetica(req.body.mensagem);
   const novaIdeia = new Ideia({
@@ -42,6 +42,23 @@ app.post("/ideias", async (req, res) => {
   });
   await novaIdeia.save();
   res.json(novaIdeia);
+});
+
+// Endpoint fake: apenas simula uma resposta (sem salvar)
+app.post("/espelho", (req, res) => {
+  const { mensagem } = req.body;
+
+  if (!mensagem) {
+    return res.status(400).json({ erro: "Mensagem é obrigatória" });
+  }
+
+  const resposta = gerarRespostaPoetica(mensagem);
+
+  res.json({
+    mensagem,
+    resposta,
+    data: new Date(),
+  });
 });
 
 app.get("/ideias", async (req, res) => {
