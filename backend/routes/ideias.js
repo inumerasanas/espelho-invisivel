@@ -1,7 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const Ideia = require("../models/ideia.model");
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://espelho-invisivel.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
+  if (req.method === 'OPTIONS') {
+    // Respond with 200 status for preflight requests
+    return res.status(200).end();
+  }
 
 function gerarRespostaPoetica(texto) {
   const respostas = [
@@ -53,3 +61,4 @@ router.get("/", async (req, res) => {
 });
 
 module.exports = router;
+}
